@@ -27,7 +27,6 @@ import {
   Trash2,
   ImageIcon,
   RefreshCw,
-  UserCog,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -50,7 +49,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'; export default function AdminPage() {
+} from '@/components/ui/dialog';
+
+export default function AdminPage() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -252,7 +253,7 @@ import {
   }, [navigate, loadData, loadMetrics]);
 
   // =========================
-  // FILTERS (Perfis)
+  // FILTERS (Perfim)
   // =========================
   const filteredProfiles = useMemo(() => {
     return allProfiles.filter((p) => {
@@ -341,18 +342,14 @@ import {
     if (!window.confirm(`Excluir permanentemente ${name || 'este perfil'}? Esta ação é irreversível e excluirá todo o histórico desse usuário no sistema.`)) return;
 
     try {
-      const { error } = await supabase.rpc('admin_delete_user', { target_user_id: id });
+      // CORREÇÃO AQUI: Alinhando o parâmetro do frontend com a chave 'user_id' configurada no schema.sql
+      const { error } = await supabase.rpc('admin_delete_user', { user_id: id });
       if (error) throw error;
 
-      // Remove imediatamente da interface (estado local) para que desapareça da aba e das listagens.
-      // Isso evita que o usuário continue aparecendo caso a exclusão no banco não conclua instantaneamente
-      // ou se o Supabase bloquear silenciosamente a deleção via RLS.
       setAllProfiles((prev) => prev.filter((p) => p.id !== id));
       setPendingProfiles((prev) => prev.filter((p) => p.id !== id));
 
       toast.success('Usuário removido.');
-
-      // Atualiza apenas as métricas, sem refazer o loadData completo para não sobrescrever a UI
       await loadMetrics();
     } catch (e) {
       console.error(e);
@@ -528,9 +525,6 @@ import {
     );
   }
 
-  // =========================
-  // UI
-  // =========================
   return (
     <div className="min-h-screen bg-slate-50 py-4 sm:py-8 px-3 sm:px-4">
       <div className="container max-w-7xl mx-auto space-y-4 sm:space-y-6">
@@ -590,7 +584,7 @@ import {
             </TabsList>
           </div>
 
-          {/* ========================= TAB: MÉTRICAS ========================= */}
+          {/* TAB: MÉTRICAS */}
           <TabsContent value="metrics" className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <h2 className="text-lg font-semibold">Indicadores de Desempenho</h2>
@@ -697,7 +691,7 @@ import {
             </Card>
           </TabsContent>
 
-          {/* ========================= TAB: PENDENTES (OFERTAS) ========================= */}
+          {/* TAB: PENDENTES (OFERTAS) */}
           <TabsContent value="pending-offers">
             <div className="grid gap-4">
               {pendingOffers.length === 0 ? (
@@ -743,7 +737,7 @@ import {
             </div>
           </TabsContent>
 
-          {/* ========================= TAB: PERFIS (COMPLETA) ========================= */}
+          {/* TAB: PERFIS */}
           <TabsContent value="profiles">
             <Card>
               <CardHeader>
@@ -754,7 +748,6 @@ import {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {/* Filtros */}
                 <div className="flex flex-col lg:flex-row gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -777,10 +770,7 @@ import {
                     </SelectContent>
                   </Select>
 
-                  <Select
-                    value={profileStatusFilter}
-                    onValueChange={(v) => setProfileStatusFilter(v)}
-                  >
+                  <Select value={profileStatusFilter} onValueChange={(v) => setProfileStatusFilter(v)}>
                     <SelectTrigger className="w-full lg:w-40">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
@@ -792,7 +782,6 @@ import {
                   </Select>
                 </div>
 
-                {/* Cards resumo */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <Card className="bg-slate-50">
                     <CardContent className="p-4 text-center">
@@ -853,11 +842,7 @@ import {
                           return (
                             <TableRow key={p.id}>
                               <TableCell className="font-medium">{p.name || 'Sem nome'}</TableCell>
-
-                              <TableCell className="text-muted-foreground">
-                                {p.whatsapp || '-'}
-                              </TableCell>
-
+                              <TableCell className="text-muted-foreground">{p.whatsapp || '-'}</TableCell>
                               <TableCell>
                                 <Badge
                                   variant={isAdmin ? 'default' : 'outline'}
@@ -866,7 +851,6 @@ import {
                                   {isAdmin ? 'Admin' : 'Usuário'}
                                 </Badge>
                               </TableCell>
-
                               <TableCell>
                                 <Badge
                                   className={
@@ -881,22 +865,14 @@ import {
                                   <Badge variant="destructive" className="ml-2 mt-1 lg:mt-0">Suspenso</Badge>
                                 )}
                               </TableCell>
-
                               <TableCell>
                                 {p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '-'}
                               </TableCell>
-
                               <TableCell className="text-right">
                                 <div className="flex flex-wrap justify-end gap-2">
-                                  {/* Aprovar / Desaprovar */}
                                   {!isApproved ? (
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleApproveProfile(p.id)}
-                                      title="Aprovar"
-                                    >
-                                      <CheckCircle className="h-4 w-4 mr-1" />
-                                      Aprovar
+                                    <Button size="sm" onClick={() => handleApproveProfile(p.id)} title="Aprovar">
+                                      <CheckCircle className="h-4 w-4 mr-1" /> Aprovar
                                     </Button>
                                   ) : (
                                     <Button
@@ -906,12 +882,10 @@ import {
                                       onClick={() => handleRejectProfile(p.id)}
                                       title="Desaprovar"
                                     >
-                                      <XCircle className="h-4 w-4 mr-1" />
-                                      Desaprovar
+                                      <XCircle className="h-4 w-4 mr-1" /> Desaprovar
                                     </Button>
                                   )}
 
-                                  {/* Role */}
                                   {!isAdmin ? (
                                     <Button
                                       size="sm"
@@ -920,8 +894,7 @@ import {
                                       onClick={() => handlePromoteToAdmin(p.id, p.name)}
                                       title="Tornar Admin"
                                     >
-                                      <Shield className="h-4 w-4 mr-1" />
-                                      Tornar Admin
+                                      <Shield className="h-4 w-4 mr-1" /> Tornar Admin
                                     </Button>
                                   ) : (
                                     !isSelf && (
@@ -932,13 +905,11 @@ import {
                                         onClick={() => handleDemoteToUser(p.id, p.name)}
                                         title="Tornar Usuário"
                                       >
-                                        <ShieldOff className="h-4 w-4 mr-1" />
-                                        Tornar Usuário
+                                        <ShieldOff className="h-4 w-4 mr-1" /> Tornar Usuário
                                       </Button>
                                     )
                                   )}
 
-                                  {/* Suspender / Ativar */}
                                   <Button
                                     size="sm"
                                     variant="outline"
@@ -951,7 +922,6 @@ import {
                                     {p.status === 'suspended' ? 'Reativar' : 'Suspender'}
                                   </Button>
 
-                                  {/* Excluir (bloqueia autoexclusão) */}
                                   <Button
                                     size="sm"
                                     variant="destructive"
@@ -959,8 +929,7 @@ import {
                                     onClick={() => handleDeleteProfile(p.id, p.name)}
                                     title={isSelf ? 'Você não pode excluir seu próprio perfil' : 'Excluir permanentemente'}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-1" />
-                                    Excluir
+                                    <Trash2 className="h-4 w-4 mr-1" /> Excluir
                                   </Button>
                                 </div>
                               </TableCell>
@@ -1027,8 +996,7 @@ import {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {!isApproved ? (
                                 <Button size="sm" onClick={() => handleApproveProfile(p.id)}>
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Aprovar
+                                  <CheckCircle className="h-4 w-4 mr-1" /> Aprovar
                                 </Button>
                               ) : (
                                 <Button
@@ -1037,8 +1005,7 @@ import {
                                   className="text-orange-600 border-orange-200"
                                   onClick={() => handleRejectProfile(p.id)}
                                 >
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                  Desaprovar
+                                  <XCircle className="h-4 w-4 mr-1" /> Desaprovar
                                 </Button>
                               )}
 
@@ -1049,8 +1016,7 @@ import {
                                   className="text-blue-600 border-blue-200"
                                   onClick={() => handlePromoteToAdmin(p.id, p.name)}
                                 >
-                                  <Shield className="h-4 w-4 mr-1" />
-                                  Tornar Admin
+                                  <Shield className="h-4 w-4 mr-1" /> Tornar Admin
                                 </Button>
                               ) : (
                                 !isSelf && (
@@ -1060,8 +1026,7 @@ import {
                                     className="text-indigo-600 border-indigo-200"
                                     onClick={() => handleDemoteToUser(p.id, p.name)}
                                   >
-                                    <ShieldOff className="h-4 w-4 mr-1" />
-                                    Tornar Usuário
+                                    <ShieldOff className="h-4 w-4 mr-1" /> Tornar Usuário
                                   </Button>
                                 )
                               )}
@@ -1084,8 +1049,7 @@ import {
                                 onClick={() => handleDeleteProfile(p.id, p.name)}
                                 className="sm:col-span-2"
                               >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Excluir Permanentemente
+                                <Trash2 className="h-4 w-4 mr-1" /> Excluir Permanentemente
                               </Button>
                             </div>
 
@@ -1104,7 +1068,7 @@ import {
             </Card>
           </TabsContent>
 
-          {/* ========================= TAB: VENDAS ========================= */}
+          {/* TAB: VENDAS */}
           <TabsContent value="sales">
             <Card>
               <CardHeader>
@@ -1136,8 +1100,7 @@ import {
                               className="p-0 h-auto text-blue-600"
                               onClick={() => setProofImageDialog({ open: true, url: s.proof_image || '' })}
                             >
-                              <ImageIcon className="mr-1 h-4 w-4" />
-                              Visualizar Comprovante
+                              <ImageIcon className="mr-1 h-4 w-4" /> Visualizar Comprovante
                             </Button>
                           ) : (
                             <p className="text-xs text-muted-foreground mt-1">Sem comprovante anexado.</p>
@@ -1165,7 +1128,7 @@ import {
             </Card>
           </TabsContent>
 
-          {/* ========================= TAB: REVIEWS ========================= */}
+          {/* TAB: REVIEWS */}
           <TabsContent value="reviews">
             <div className="grid gap-4">
               {pendingReviews.length === 0 ? (
@@ -1220,7 +1183,7 @@ import {
             </div>
           </TabsContent>
 
-          {/* ========================= TAB: OFERTAS ========================= */}
+          {/* TAB: OFERTAS */}
           <TabsContent value="offers">
             <Card>
               <CardContent className="pt-6">
@@ -1271,7 +1234,7 @@ import {
             </Card>
           </TabsContent>
 
-          {/* ========================= TAB: DISPUTES ========================= */}
+          {/* TAB: DISPUTES */}
           <TabsContent value="disputes">
             <div className="grid gap-4">
               {disputes.length === 0 ? (
@@ -1334,8 +1297,7 @@ import {
                 variant="outline"
                 disabled={!proofImageDialog.url}
               >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Ver em nova aba
+                <ExternalLink className="mr-2 h-4 w-4" /> Ver em nova aba
               </Button>
 
               <Button

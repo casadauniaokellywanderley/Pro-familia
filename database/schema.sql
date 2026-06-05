@@ -1,7 +1,7 @@
 -- ====================================================================
 -- PRÓ-FAMÍLIA CONECTA - SCRIPT SQL MESTRE
 -- Execute este script no Supabase SQL Editor para configurar o banco
--- Versão: 1.0.0 | Data: 2025-02
+-- Versão: 1.1.0 | Data: 2026-06
 -- ====================================================================
 -- IMPORTANTE: Este script é IDEMPOTENTE - pode ser executado múltiplas
 -- vezes sem causar erros ou duplicar dados.
@@ -123,6 +123,26 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ====================================================================
+-- PARTE 3.5: FUNÇÃO DE DELEÇÃO ADMINISTRATIVA VIA RPC (NOVA)
+-- Resolve o erro 404 e permite deletar usuários via Frontend de forma segura
+-- ====================================================================
+
+CREATE OR REPLACE FUNCTION public.admin_delete_user(user_id UUID)
+RETURNS VOID AS $$
+BEGIN
+    -- Utiliza a função is_admin() existente para validar a permissão
+    IF public.is_admin() THEN
+        DELETE FROM auth.users WHERE id = user_id;
+    ELSE
+        RAISE EXCEPTION 'Acesso negado: Apenas administradores podem deletar usuários.';
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Garante as permissões de execução da nova função na API
+GRANT EXECUTE ON FUNCTION public.admin_delete_user(UUID) TO authenticated;
+
+-- ====================================================================
 -- PARTE 4: HABILITAR ROW LEVEL SECURITY (RLS)
 -- ====================================================================
 
@@ -137,7 +157,6 @@ ALTER TABLE sales_reports ENABLE ROW LEVEL SECURITY;
 -- PARTE 5: POLÍTICAS RLS - PROFILES
 -- ====================================================================
 
--- Limpeza de políticas existentes para evitar conflitos
 DROP POLICY IF EXISTS "profiles_select_policy" ON profiles;
 DROP POLICY IF EXISTS "profiles_insert_policy" ON profiles;
 DROP POLICY IF EXISTS "profiles_update_policy" ON profiles;
@@ -154,13 +173,12 @@ CREATE POLICY "profiles_insert_policy"
     WITH CHECK (auth.uid() = id);
 
 -- UPDATE: Usuário pode atualizar seu próprio perfil OU um admin pode atualizar qualquer perfil
--- Esta regra permite que o admin aprove usuários e promova outros a admin
 CREATE POLICY "profiles_update_policy"
     ON profiles FOR UPDATE
     USING (
         auth.uid() = id 
         OR 
-        (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+        public.is_admin()
     );
 
 -- ====================================================================
@@ -196,7 +214,7 @@ CREATE POLICY "offers_delete_policy"
     USING (owner_id = auth.uid() OR public.is_admin());
 
 -- ====================================================================
--- PARTE 7: POLÍTICAS RLS - REVIEWS
+-- PARTE 7: SINALIZAÇÃO RLS - REVIEWS
 -- ====================================================================
 
 DROP POLICY IF EXISTS "reviews_select_policy" ON reviews;
@@ -311,22 +329,6 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ====================================================================
--- PARTE 12: CONFIGURAR STORAGE BUCKET
--- Execute esta parte manualmente se o bucket não existir
--- ====================================================================
-
--- No Supabase Dashboard > Storage > New Bucket:
--- Nome: offer-images
--- Public: true
--- File size limit: 5MB
--- Allowed MIME types: image/jpeg, image/png, image/webp
-
--- Políticas de Storage (execute no SQL Editor):
--- INSERT (upload): authenticated users can upload to their folder
--- SELECT (download): anyone can view
--- DELETE: users can delete their own files
-
--- ====================================================================
 -- VERIFICAÇÃO FINAL
 -- ====================================================================
 
@@ -339,7 +341,3 @@ FROM pg_policies
 WHERE schemaname = 'public';
 
 SELECT '✅ Script SQL Mestre executado com sucesso!' as resultado;
-
--- ====================================================================
--- FIM DO SCRIPT
--- ====================================================================
