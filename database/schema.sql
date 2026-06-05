@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
     name TEXT,
     whatsapp TEXT,
+    neighborhood TEXT,
     bio TEXT,
     avatar_url TEXT,
     is_approved BOOLEAN DEFAULT FALSE,

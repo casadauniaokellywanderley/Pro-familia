@@ -68,7 +68,6 @@ export default function OfferDetailsPage() {
             id,
             name,
             whatsapp,
-            neighborhood,
             avatar_url
           )
         `)

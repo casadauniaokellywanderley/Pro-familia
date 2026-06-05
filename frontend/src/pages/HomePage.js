@@ -65,8 +65,7 @@ export default function HomePage() {
           *,
           profiles (
             name,
-            whatsapp,
-            neighborhood
+            whatsapp
           )
         `)
         .eq('active', true)
