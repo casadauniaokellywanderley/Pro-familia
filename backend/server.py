@@ -1,8 +1,11 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import re
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
@@ -21,12 +24,27 @@ db_name = os.environ.get('DB_NAME', 'profamilia_conecta')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
+# Middleware para normalizar barras duplas na URL (ex: //api/ -> /api/)
+class NormalizeSlashesMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        normalized = re.sub(r'/{2,}', '/', path)
+        if normalized != path:
+            # Redireciona para a URL corrigida mantendo query string
+            qs = request.url.query
+            redirect_url = normalized + (f'?{qs}' if qs else '')
+            return RedirectResponse(url=redirect_url, status_code=301)
+        return await call_next(request)
+
 # Create the main app without a prefix
 app = FastAPI(
     title="Pró-Família Conecta API",
     description="API Backend para a plataforma Pró-Família Conecta",
     version="1.0.0"
 )
+
+# Aplicar middleware de normalização ANTES do CORS
+app.add_middleware(NormalizeSlashesMiddleware)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
