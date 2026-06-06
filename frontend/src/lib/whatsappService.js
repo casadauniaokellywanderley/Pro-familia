@@ -1,19 +1,27 @@
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Remove barra final da URL para evitar double-slash (ex: https://host.com//api/...)
+const RAW_BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const BACKEND_URL = RAW_BACKEND_URL.replace(/\/+$/, '');
 const ADMIN_WHATSAPP = process.env.REACT_APP_ADMIN_WHATSAPP;
 
 export const whatsappService = {
   async sendMessage(to, message) {
     try {
-      // Usar proxy do backend para evitar Mixed Content
-      const response = await axios.post(`${BACKEND_URL}/api/whatsapp/send`, {
+      if (!BACKEND_URL) {
+        console.error('WhatsApp: REACT_APP_BACKEND_URL não está configurada!');
+        return { success: false, error: 'Backend URL não configurada' };
+      }
+      // Usar proxy do backend para evitar Mixed Content (HTTPS -> HTTP)
+      const endpoint = `${BACKEND_URL}/api/whatsapp/send`;
+      const response = await axios.post(endpoint, {
         number: to,
         text: message
       });
       return { success: true, data: response.data };
     } catch (error) {
       console.error('WhatsApp API Error:', error.message);
+      console.error('URL chamada:', `${BACKEND_URL}/api/whatsapp/send`);
       console.error('Detalhes:', error.response?.data || error);
       return { success: false, error: error.message };
     }
