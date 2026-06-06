@@ -131,14 +131,29 @@ async def send_whatsapp_message(message: WhatsAppMessage):
             response.raise_for_status()
             return {"success": True, "data": response.json()}
             
+    except httpx.HTTPStatusError as e:
+        error_msg = f"API Error {e.response.status_code}: {e.response.text}"
+        logger.error(error_msg)
+        try:
+            await db.whatsapp_logs.insert_one({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "level": "error",
+                "message": error_msg,
+                "number": clean_number,
+                "text": message.text,
+                "type": "whatsapp_api_status_error"
+            })
+        except Exception as log_e:
+            logger.error(f"Failed to log to MongoDB: {str(log_e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao enviar mensagem: {error_msg}")
     except httpx.HTTPError as e:
-        logger.error(f"WhatsApp API Error: {str(e)}")
+        logger.error(f"WhatsApp API Connection Error: {str(e)}")
         try:
             await db.whatsapp_logs.insert_one({
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "level": "error",
                 "message": f"HTTPError: {str(e)}",
-                "number": message.number,
+                "number": clean_number,
                 "text": message.text,
                 "type": "whatsapp_api_timeout_or_error"
             })
