@@ -14,6 +14,7 @@ export const whatsappService = {
       }
       // Usar proxy do backend para evitar Mixed Content (HTTPS -> HTTP)
       const endpoint = `${BACKEND_URL}/api/whatsapp/send`;
+      console.log('WhatsApp: Enviando requisição...', { para: to, endpoint });
       const response = await axios.post(endpoint, {
         number: to,
         text: message
