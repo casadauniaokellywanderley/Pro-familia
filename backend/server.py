@@ -110,11 +110,16 @@ async def send_whatsapp_message(message: WhatsAppMessage):
         if not whatsapp_url or not whatsapp_key:
             raise HTTPException(status_code=503, detail="WhatsApp API não configurada")
         
+        # Sanitiza o número: mantém apenas dígitos e adiciona DDI 55 se estiver sem
+        clean_number = re.sub(r'\D', '', message.number)
+        if len(clean_number) in (10, 11):
+            clean_number = '55' + clean_number
+
         async with httpx.AsyncClient(timeout=10.0) as http_client:
             response = await http_client.post(
                 f"{whatsapp_url}/message/sendText/{whatsapp_instance}",
                 json={
-                    "number": message.number,
+                    "number": clean_number,
                     "text": message.text
                 },
                 headers={
