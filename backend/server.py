@@ -87,13 +87,14 @@ async def send_whatsapp_message(message: WhatsAppMessage):
     try:
         whatsapp_url = os.environ.get('WHATSAPP_API_URL')
         whatsapp_key = os.environ.get('WHATSAPP_API_KEY')
+        whatsapp_instance = os.environ.get('WHATSAPP_INSTANCE_NAME', 'admin_profamilia')
         
         if not whatsapp_url or not whatsapp_key:
             raise HTTPException(status_code=503, detail="WhatsApp API não configurada")
         
         async with httpx.AsyncClient(timeout=10.0) as http_client:
             response = await http_client.post(
-                f"{whatsapp_url}/message/sendText/admin_profamilia",
+                f"{whatsapp_url}/message/sendText/{whatsapp_instance}",
                 json={
                     "number": message.number,
                     "text": message.text

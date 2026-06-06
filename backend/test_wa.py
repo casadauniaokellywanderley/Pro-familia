@@ -3,8 +3,8 @@ import json
 import sys
 
 # User's provided config
-URL = "http://152.67.33.214:8080"
-INSTANCE = "admin_profamilia"
+URL = "http://157.151.161.62:8080"
+INSTANCE = "suporte_profamilia"
 API_KEY = "casauniao_secret_key"
 
 def test_send():

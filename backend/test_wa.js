@@ -1,7 +1,7 @@
 const axios = require('axios');
 
-const URL = "http://152.67.33.214:8080";
-const INSTANCE = "admin_profamilia";
+const URL = "http://157.151.161.62:8080";
+const INSTANCE = "suporte_profamilia";
 const API_KEY = "casauniao_secret_key";
 
 async function testSend() {
