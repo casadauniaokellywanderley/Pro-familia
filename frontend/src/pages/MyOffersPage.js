@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, getOrCreateProfile } from '@/lib/supabase';
 import { whatsappService } from '@/lib/whatsappService';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -77,11 +77,7 @@ export default function MyOffersPage() {
       return;
     }
 
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
+    const { data: profileData } = await getOrCreateProfile(session.user.id);
 
     setProfile(profileData);
 

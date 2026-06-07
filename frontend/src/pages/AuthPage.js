@@ -89,8 +89,12 @@ export default function AuthPage() {
 
       // ---- INÍCIO DO GATILHO DO WHATSAPP ----
       try {
-        await whatsappService.notifyNewRegistration(undefined, signUpData.name);
-        console.log("Notificação de novo cadastro enviada com sucesso!");
+        const result = await whatsappService.notifyNewRegistration(undefined, signUpData.name);
+        if (result && result.success) {
+          console.log("Notificação de novo cadastro enviada com sucesso!");
+        } else {
+          console.error("Erro ao enviar notificação de WhatsApp (resposta do proxy):", result?.error || 'Erro desconhecido');
+        }
       } catch (wppError) {
         // Logamos o erro silenciosamente para não impedir o usuário de se cadastrar
         console.error("Erro ao enviar notificação de WhatsApp:", wppError);

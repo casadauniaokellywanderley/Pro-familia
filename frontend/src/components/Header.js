@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, getOrCreateProfile } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Home, Package, Shield, User, LogOut, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,11 +52,7 @@ export default function Header() {
 
   const loadProfile = async (userId) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const { data, error } = await getOrCreateProfile(userId);
 
       if (error) {
         console.error('Erro ao carregar perfil:', error);

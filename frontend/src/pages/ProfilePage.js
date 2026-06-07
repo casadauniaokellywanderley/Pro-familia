@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, getOrCreateProfile } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -37,11 +37,7 @@ export default function ProfilePage() {
   // CORREÇÃO 1: loadProfile envolvido em useCallback
   const loadProfile = useCallback(async (userId) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const { data, error } = await getOrCreateProfile(userId);
 
       if (error) throw error;
 

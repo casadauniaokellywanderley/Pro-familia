@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase, getOrCreateProfile } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CheckCircle2, Clock, Heart } from 'lucide-react';
@@ -16,12 +16,8 @@ export default function AuthCallbackPage() {
       async (event, session) => {
         if (session) {
           try {
-            // Busca o perfil do usuário recém-confirmado
-            const { data, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
+            // Busca ou cria o perfil do usuário recém-confirmado
+            const { data, error } = await getOrCreateProfile(session.user.id);
 
             if (error) throw error;
             setUserProfile(data);
@@ -43,11 +39,7 @@ export default function AuthCallbackPage() {
     // Verificação inicial rápida
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
+        getOrCreateProfile(session.user.id)
           .then(({ data }) => {
             if (data) setUserProfile(data);
             setLoading(false);
