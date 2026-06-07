@@ -9,6 +9,7 @@ import AdminPage from '@/pages/AdminPage';
 import MediationPage from '@/pages/MediationPage';
 import OfferDetailsPage from '@/pages/OfferDetailsPage';
 import ProfilePage from '@/pages/ProfilePage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/mediacao" element={<MediationPage />} />
           <Route path="/oferta/:id" element={<OfferDetailsPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         </Routes>
         <Toaster position="top-right" richColors />
       </div>
