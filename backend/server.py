@@ -69,7 +69,15 @@ class WhatsAppMessage(BaseModel):
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    wa_url = os.environ.get('WHATSAPP_API_URL', 'NOT SET')
+    wa_key = os.environ.get('WHATSAPP_API_KEY', 'NOT SET')
+    wa_instance = os.environ.get('WHATSAPP_INSTANCE_NAME', 'NOT SET')
+    return {
+        "version": "2026-06-07-v2",
+        "whatsapp_api_url": wa_url,
+        "whatsapp_api_key": wa_key[:6] + "***" if wa_key != "NOT SET" else "NOT SET",
+        "whatsapp_instance": wa_instance,
+    }
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):

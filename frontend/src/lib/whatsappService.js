@@ -12,11 +12,18 @@ export const whatsappService = {
         console.error('WhatsApp: REACT_APP_BACKEND_URL não está configurada!');
         return { success: false, error: 'Backend URL não configurada' };
       }
+
+      // Normaliza o número: remove não-dígitos e adiciona DDI 55 se necessário
+      let normalizedTo = String(to || '').replace(/\D/g, '');
+      if (normalizedTo.length === 10 || normalizedTo.length === 11) {
+        normalizedTo = '55' + normalizedTo;
+      }
+
       // Usar proxy do backend para evitar Mixed Content (HTTPS -> HTTP)
       const endpoint = `${BACKEND_URL}/api/whatsapp/send`;
-      console.log('WhatsApp: Enviando requisição...', { para: to, endpoint });
+      console.log('WhatsApp: Enviando requisição...', { original: to, normalizado: normalizedTo, endpoint });
       const response = await axios.post(endpoint, {
-        number: to,
+        number: normalizedTo,
         text: message
       });
       return { success: true, data: response.data };
