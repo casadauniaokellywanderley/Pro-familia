@@ -72,6 +72,12 @@ export const whatsappService = {
     return this.sendMessage(sellerWhatsApp, message);
   },
 
+  // Notifica o usuário quando seu perfil/cadastro é aprovado
+  async notifyUserApproved(userWhatsApp, userName) {
+    const message = `🎉 *Cadastro Aprovado!*\n\nOlá ${userName}!\n\nSeu cadastro no Pró-Família Conecta foi aprovado pelo administrador.\n\nVocê já pode fazer login e anunciar suas ofertas na plataforma! 🚀`;
+    return this.sendMessage(userWhatsApp, message);
+  },
+
   // Notifica vendedor quando oferta é rejeitada
   async notifyOfferRejected(sellerWhatsApp, sellerName, offerTitle) {
     const message = `❌ *Oferta não aprovada*\n\nOlá ${sellerName}.\n\nInfelizmente sua oferta "${offerTitle}" não foi aprovada.\n\nEntre em contato com o administrador para mais informações.`;

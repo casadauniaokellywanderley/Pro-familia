@@ -295,6 +295,17 @@ export default function AdminPage() {
       const { error } = await supabase.from('profiles').update({ is_approved: true }).eq('id', id);
       if (error) throw error;
 
+      // Envia notificação por WhatsApp ao usuário aprovado
+      try {
+        const approvedUser = allProfiles.find((p) => p.id === id);
+        if (approvedUser && approvedUser.whatsapp) {
+          await whatsappService.notifyUserApproved(approvedUser.whatsapp, approvedUser.name || 'Usuário');
+          console.log("Notificação de aprovação de perfil enviada com sucesso!");
+        }
+      } catch (wppError) {
+        console.error("Erro ao enviar notificação de aprovação:", wppError);
+      }
+
       toast.success('Perfil aprovado!');
       await Promise.all([loadData(), loadMetrics()]);
     } catch (e) {

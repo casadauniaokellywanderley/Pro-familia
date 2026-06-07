@@ -89,14 +89,8 @@ export default function AuthPage() {
 
       // ---- INÍCIO DO GATILHO DO WHATSAPP ----
       try {
-        const adminPhone = process.env.REACT_APP_ADMIN_WHATSAPP;
-        if (adminPhone) {
-          console.log("Tentando notificar admin sobre novo cadastro:", adminPhone);
-          await whatsappService.notifyNewRegistration(adminPhone, signUpData.name);
-          console.log("Notificação enviada com sucesso!");
-        } else {
-          console.warn("Variável REACT_APP_ADMIN_WHATSAPP não configurada. Notificação ignorada.");
-        }
+        await whatsappService.notifyNewRegistration(undefined, signUpData.name);
+        console.log("Notificação de novo cadastro enviada com sucesso!");
       } catch (wppError) {
         // Logamos o erro silenciosamente para não impedir o usuário de se cadastrar
         console.error("Erro ao enviar notificação de WhatsApp:", wppError);
