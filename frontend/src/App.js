@@ -10,6 +10,7 @@ import MediationPage from '@/pages/MediationPage';
 import OfferDetailsPage from '@/pages/OfferDetailsPage';
 import ProfilePage from '@/pages/ProfilePage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import AuthCallbackPage from '@/pages/AuthCallbackPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/oferta/:id" element={<OfferDetailsPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
           <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Routes>
         <Toaster position="top-right" richColors />
       </div>
